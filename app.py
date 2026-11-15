@@ -1,14 +1,9 @@
 
-import streamlit as st
+"""김밥(GIMBAP) Streamlit 서비스 실행 파일"""
 
-st.title("해커톤 프로젝트 1조")
+from pathlib import Path
+import runpy
 
-st.write("AI 서비스 개발환경 테스트")
+ui_path = Path(__file__).with_name("ui.py")
 
-name = st.text_input("이름을 입력하세요")
-
-if st.button("확인"):
-    if name:
-        st.success(f"{name}님, 환영합니다!")
-    else:
-        st.warning("이름을 입력해주세요.")
+runpy.run_path(str(ui_path), run_name="__main__")
