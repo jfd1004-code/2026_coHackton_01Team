@@ -67,6 +67,34 @@ LOGO_MARK_SVG = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240"
 LOGO_MARK_URI = svg_data_uri(LOGO_MARK_SVG)
 
 
+# =====================================================================
+# 로딩 그림: 김밥 단면 (김 · 밥 · 단무지 · 당근 · 계란 · 시금치 · 맛살) → 빙글빙글 돌림
+# =====================================================================
+_FILL = 'stroke="#1F2B24" stroke-width="1.6" rx="2.2"'
+GIMBAP_SVG = f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+<circle cx="50" cy="50" r="47" fill="#1F2B24"/>
+<circle cx="50" cy="50" r="39" fill="#FFFDF5"/>
+<g fill="#EADBB0">
+<ellipse cx="27" cy="34" rx="3" ry="1.5" transform="rotate(-40 27 34)"/>
+<ellipse cx="73" cy="31" rx="3" ry="1.5" transform="rotate(35 73 31)"/>
+<ellipse cx="22" cy="60" rx="3" ry="1.5" transform="rotate(70 22 60)"/>
+<ellipse cx="77" cy="66" rx="3" ry="1.5" transform="rotate(-60 77 66)"/>
+<ellipse cx="45" cy="80" rx="3" ry="1.5" transform="rotate(10 45 80)"/>
+<ellipse cx="58" cy="20" rx="3" ry="1.5" transform="rotate(-10 58 20)"/>
+</g>
+<rect x="41" y="26" width="18" height="12" fill="#F5B800" {_FILL}/>
+<rect x="27" y="43" width="12" height="14" fill="#F07B2A" {_FILL}/>
+<rect x="42" y="43" width="16" height="14" fill="#FBE38A" {_FILL}/>
+<rect x="61" y="43" width="12" height="14" fill="#3C9A4E" {_FILL}/>
+<rect x="41" y="62" width="18" height="12" fill="#E5483B" {_FILL}/>
+</svg>"""
+GIMBAP_URI = svg_data_uri(GIMBAP_SVG)
+
+# 처음 접속할 때 화면이 다 그려질 때까지 덮어 두는 로딩 화면 (ui.main()에서 씀)
+LOADER_HTML = ('<div class="gb-loader" role="status" aria-label="불러오는 중">'
+               '<div class="gb-loader-roll"></div><div class="gb-loader-text">김밥 마는 중…</div></div>')
+
+
 def logo_html(size: str = "big") -> str:
     """로고(나침반 + '김밥' 글자). size: 'big'(첫 화면) / 'small'(메인 화면 왼쪽 위)"""
     if size == "big":
@@ -241,6 +269,8 @@ header[data-testid="stHeader"] { background: transparent; }
   border-radius: 22px;
   padding: 1.4rem 1.8rem;
 }
+/* 로그인 · 회원가입 팝업의 폼(엔터로 제출용)은 상자 없이 */
+[data-testid="stDialog"] [data-testid="stForm"] { background: transparent; border: none; border-radius: 0; padding: 0; }
 [data-testid="stVerticalBlockBorderWrapper"] { border-radius: 18px; }
 
 /* ---------- ① 첫 화면 ---------- */
@@ -335,16 +365,16 @@ header[data-testid="stHeader"] { background: transparent; }
 .st-key-logout button:hover { color: #163F87 !important; }
 
 /* 위쪽 큰 탭 (이번 여행 기획 / AI에게 물어보기) + 첫 화면의 [AI에게 물어보기]: 로그인·로그아웃보다 눈에 띄게 */
-[class*="st-key-navon_"] button, [class*="st-key-navoff_"] button, .st-key-landing_ai button {
+[class*="st-key-navon_"] button, [class*="st-key-navoff_"] button, [class*="st-key-landing_ai"] button {
   border: 2.5px solid #1F2B24 !important; border-radius: 999px !important; min-height: 3.1rem !important;
 }
-[class*="st-key-navon_"] button p, [class*="st-key-navoff_"] button p, .st-key-landing_ai button p {
+[class*="st-key-navon_"] button p, [class*="st-key-navoff_"] button p, [class*="st-key-landing_ai"] button p {
   font-family: 'Jua', sans-serif !important; font-size: 1.3rem !important;
 }
-[class*="st-key-navon_"] button, .st-key-landing_ai button { background: #F6C945 !important; box-shadow: 3px 3px 0 #1F2B24; }
+[class*="st-key-navon_"] button, [class*="st-key-landing_ai"] button { background: #F6C945 !important; box-shadow: 3px 3px 0 #1F2B24; }
 [class*="st-key-navoff_"] button { background: #FFFDF5 !important; }
 [class*="st-key-navoff_"] button:hover { background: #F9DC7A !important; }
-.st-key-landing_ai button:hover { background: #F9DC7A !important; }
+[class*="st-key-landing_ai"] button:hover { background: #F9DC7A !important; }
 
 /* AI에게 물어보기 (chat_view.py) */
 .gb-chat-title { font-family: 'Jua', sans-serif; font-size: 1.8rem; margin-top: 0.8rem; }
@@ -393,6 +423,22 @@ header[data-testid="stHeader"] { background: transparent; }
 [data-testid="stRadio"] label p { font-size: 1.05rem; }
 .gb-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0.3rem 0 1rem; }
 .gb-chip { background: #FFFDF5; border: 1.5px solid #1F2B24; border-radius: 999px; padding: 2px 12px; font-size: 0.9rem; }
+.gb-chip.avoid { background: #FFF1E6; border-style: dashed; }  /* 피하고 싶은 조건 */
+/* 작은 안내: 사진을 누르면 안내 페이지가 열린다는 것 등 */
+.gb-tip { font-size: 0.88rem; color: #3F4A43; margin: -0.2rem 0 0.4rem; }
+/* AI 채팅 대화 전 환영 말풍선 */
+.gb-guide-hello { font-size: 1.02rem; margin-bottom: 0.7rem; }
+.gb-guide-title { font-family: 'Jua', sans-serif; font-size: 1rem; margin-bottom: 0.45rem; }
+.gb-guide-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.gb-guide-item {
+  background: #FFFDF5; border: 1.5px solid #1F2B24; border-radius: 12px; padding: 8px 12px;
+  display: flex; flex-direction: column; gap: 2px; font-size: 0.9rem;
+}
+.gb-guide-item b { font-family: 'Jua', sans-serif; font-weight: 400; }
+.gb-guide-item span { color: #3F4A43; word-break: keep-all; }  /* 한국어는 낱말 단위로 줄바꿈 (팝업스/토어 X) */
+.gb-guide-db { margin-top: 0.7rem; font-size: 0.88rem; color: #3F4A43; }
+/* 첫 화면: 로고 아래 [로그인 | 회원가입]은 휴대폰에서만 (아래 @media) */
+.st-key-gb_landing_auth_m { display: none; }
 
 .gb-card-img { margin-bottom: 14px; }  /* 그림과 하트 사이 간격 */
 .gb-card-img img { display: block; width: 100%; aspect-ratio: 2 / 1; object-fit: cover; border-radius: 12px; border: 2px solid #1F2B24; }
@@ -486,6 +532,27 @@ header[data-testid="stHeader"] { background: transparent; }
 .gb-fav-box { background: #FFFDF5; border: 2px solid #1F2B24; border-radius: 16px; padding: 10px 16px; margin-bottom: 10px; }
 .gb-fav-box b { font-family: 'Jua', sans-serif; font-weight: 400; font-size: 1.1rem; }
 .gb-fav-box ul { margin: 6px 0 0; padding-left: 1.2rem; }
+/* ---------- 로딩: 김밥이 빙글빙글 ---------- */
+@keyframes gb-roll { to { transform: rotate(360deg); } }
+.gb-loader {
+  position: fixed; inset: 0; z-index: 1000001; background: #FFF6D8;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
+}
+.gb-loader-roll {
+  width: 92px; height: 92px; background: url("GIMBAP_URI_HERE") center / contain no-repeat;
+  animation: gb-roll 1.1s linear infinite;
+}
+.gb-loader-text { font-family: 'Jua', sans-serif; font-size: 1.3rem; color: #1F2B24; }
+/* Streamlit 기본 회색 동그라미(기다리는 중 표시)도 김밥으로 */
+[data-testid="stSpinnerIcon"] {
+  width: 1.5rem !important; height: 1.5rem !important; border: none !important; border-radius: 0 !important;
+  background: url("GIMBAP_URI_HERE") center / contain no-repeat !important;
+  animation: gb-roll 1.1s linear infinite !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .gb-loader-roll, [data-testid="stSpinnerIcon"] { animation-duration: 3s !important; }
+}
+
 /* ---------- 하트(찜) 버튼: 크기를 고정 → 좁은 칸에서도 반쪽으로 잘리지 않음 ---------- */
 [class*="_heart_"] button {
   width: 2.5rem !important; height: 2.5rem !important; min-height: 0 !important; padding: 0 !important;
@@ -548,14 +615,22 @@ header[data-testid="stHeader"] { background: transparent; }
   /* 위쪽 큰 탭 두 개: 한 줄에 나란히 */
   .st-key-gb_nav > [data-testid="stLayoutWrapper"] > [data-testid="stHorizontalBlock"] { flex-wrap: nowrap !important; gap: 0.6rem !important; }
   .st-key-gb_nav > [data-testid="stLayoutWrapper"] > [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] { min-width: 0 !important; }
-  [class*="st-key-navon_"] button, [class*="st-key-navoff_"] button, .st-key-landing_ai button {
+  [class*="st-key-navon_"] button, [class*="st-key-navoff_"] button, [class*="st-key-landing_ai"] button {
     min-height: 2.7rem !important; padding: 0.2rem 0.5rem !important;
   }
-  [class*="st-key-navon_"] button p, [class*="st-key-navoff_"] button p, .st-key-landing_ai button p {
+  [class*="st-key-navon_"] button p, [class*="st-key-navoff_"] button p, [class*="st-key-landing_ai"] button p {
     font-size: 1.05rem !important; white-space: nowrap;
   }
 
-  /* 첫 화면 위쪽: 소개 → [AI에게 물어보기] → [로그인 | 회원가입] */
+  /* 첫 화면 순서: 소개 → 로고 → [로그인 | 회원가입] → [AI에게 물어보기] → 기능 소개
+     위쪽 줄에서는 소개만 남기고, 버튼은 로고 아래 휴대폰용 버튼(gb_landing_auth_m)을 씀 */
+  .st-key-gb_landing_top > [data-testid="stLayoutWrapper"] > [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:nth-child(n+2) { display: none; }
+  .st-key-gb_landing_auth_m { display: flex; width: min(100%, 340px) !important; align-self: center; margin-top: 0.6rem; }
+  .st-key-gb_landing_auth_m > [data-testid="stLayoutWrapper"] > [data-testid="stHorizontalBlock"] { flex-wrap: nowrap !important; gap: 0.6rem !important; }
+  .st-key-gb_landing_auth_m > [data-testid="stLayoutWrapper"] > [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] { min-width: 0 !important; }
+  .gb-guide-grid { gap: 6px; }  /* 휴대폰에서도 두 칸씩, 대신 작게 */
+  .gb-guide-item { padding: 6px 8px; font-size: 0.8rem; border-radius: 10px; }
+  .gb-guide-hello { font-size: 0.95rem; margin-bottom: 0.5rem; }
   .st-key-gb_landing_top > [data-testid="stLayoutWrapper"] > [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] { min-width: 0 !important; }
   .st-key-gb_landing_top > [data-testid="stLayoutWrapper"] > [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:nth-child(1), .st-key-gb_landing_top > [data-testid="stLayoutWrapper"] > [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:nth-child(2) { min-width: 100% !important; }
   .gb-intro { display: block; text-align: center; border-radius: 16px; font-size: 0.92rem; }
@@ -641,3 +716,5 @@ header[data-testid="stHeader"] { background: transparent; }
 }
 </style>
 """
+
+CSS = CSS.replace("GIMBAP_URI_HERE", GIMBAP_URI)

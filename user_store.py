@@ -32,7 +32,6 @@ STORE_DIR = Path(__file__).parent / "user_data"
 USERS_PATH = STORE_DIR / "users.json"
 TRIPS_PATH = STORE_DIR / "trips.json"
 PHOTO_DIR = STORE_DIR / "photos"
-AI_PICKS_PATH = STORE_DIR / "ai_picks.json"  # AI 채팅에서 찜한 장소 {사용자: [place_id, ...]}
 
 ID_PATTERN = re.compile(r"^[A-Za-z0-9_]{3,20}$")
 MIN_PASSWORD_LEN = 4
@@ -73,7 +72,7 @@ def create_user(user_id: str, password: str, agreed: bool) -> str | None:
     if not ID_PATTERN.match(user_id):
         return "아이디는 영문·숫자·밑줄(_)로 3~20자로 만들어 주세요."
     if len(password) < MIN_PASSWORD_LEN:
-        return f"비밀번호는 {MIN_PASSWORD_LEN}자 이상이어야 해요."
+        return f"비밀번호는 최소 {MIN_PASSWORD_LEN}자로 적어 주세요."
     if not agreed:
         return "약관(개인정보 수집·이용)에 동의해야 가입할 수 있어요."
 
@@ -299,29 +298,6 @@ def set_trip_route(trip_id: str, user_id: str, place_ids: list[str]) -> str | No
     trip['updated_at'] = _now()
     _write(TRIPS_PATH, trips)
     return None
-
-# ---------------------------------------------------------------------
-# AI 채팅에서 찜한 장소 — 여행 파일과 별도로, 사람마다 하나의 목록 (찜한 순서 유지)
-# ---------------------------------------------------------------------
-def get_ai_picks(user_id: str) -> list[str]:
-    return list(_read(AI_PICKS_PATH, {}).get(user_id, []))
-
-
-def toggle_ai_pick(user_id: str, place_id: str) -> None:
-    picks = _read(AI_PICKS_PATH, {})
-    mine = picks.setdefault(user_id, [])
-    if place_id in mine:
-        mine.remove(place_id)
-    else:
-        mine.append(place_id)
-    _write(AI_PICKS_PATH, picks)
-
-
-def clear_ai_picks(user_id: str) -> None:
-    picks = _read(AI_PICKS_PATH, {})
-    if picks.pop(user_id, None) is not None:
-        _write(AI_PICKS_PATH, picks)
-
 
 # ---------------------------------------------------------------------
 # 여행 사진첩 — 여행에서 찍은 사진 여러 장 (대표 사진과 별도)
